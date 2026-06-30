@@ -26,7 +26,9 @@ import {
   BrainCircuit,
   Eye,
   Maximize2,
-  Upload
+  Upload,
+  Lock,
+  X
 } from 'lucide-react';
 
 import { InteractiveFloorplan } from './components/InteractiveFloorplan';
@@ -287,6 +289,10 @@ export default function App() {
   const [activeStoreId, setActiveStoreId] = useState<string>("seasons-village");
   const [stores, setStores] = useState<Record<string, any>>({});
 
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState<boolean>(false);
+  const [passwordInput, setPasswordInput] = useState<string>("");
+  const [passwordError, setPasswordError] = useState<boolean>(false);
+
   // Secret Click Detector (5 Clicks on Top Right viewport)
   const [secretClicks, setSecretClicks] = useState<number[]>([]);
   const handleSecretClick = () => {
@@ -294,9 +300,20 @@ export default function App() {
     const recent = [...secretClicks, now].filter(t => now - t < 3000);
     setSecretClicks(recent);
     if (recent.length >= 5) {
-      setIsEditMode(true);
+      setIsPasswordModalOpen(true);
       setSecretClicks([]);
+    }
+  };
+
+  const handlePasswordSubmit = () => {
+    if (passwordInput === "024400955") {
+      setIsEditMode(true);
+      setIsPasswordModalOpen(false);
+      setPasswordInput("");
+      setPasswordError(false);
       showToastMessage("เปิดโหมดแก้ไขแล้ว ✨");
+    } else {
+      setPasswordError(true);
     }
   };
 
@@ -500,7 +517,7 @@ export default function App() {
           ...activeStore,
           images: { ...images, [activeImageId]: base64 }
         };
-        const updatedStores = { ...stores, [activeImageId]: updatedStore };
+        const updatedStores = { ...stores, [activeStoreId]: updatedStore };
         saveStoresAndSync(updatedStores);
         showToastMessage("อัปโหลดรูปภาพแล้ว ✨");
       });
@@ -753,12 +770,14 @@ export default function App() {
               </div>
 
               {/* Add Store Button */}
-              <button 
-                onClick={() => setIsAddModalOpen(true)}
-                className="w-full flex items-center justify-center gap-1.5 bg-[#C9A96E] hover:bg-[#E8D5B0] text-black font-semibold text-xs py-2 rounded-lg transition-colors mt-2 cursor-pointer"
-              >
-                <span>+ เพิ่มสาขาใหม่</span>
-              </button>
+              {isEditMode && (
+                <button 
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="w-full flex items-center justify-center gap-1.5 bg-[#C9A96E] hover:bg-[#E8D5B0] text-black font-semibold text-xs py-2 rounded-lg transition-colors mt-2 cursor-pointer"
+                >
+                  <span>+ เพิ่มสาขาใหม่</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -806,6 +825,71 @@ export default function App() {
                   className="flex-1 bg-[#C9A96E] hover:bg-[#E8D5B0] text-black font-semibold text-xs py-3 rounded-xl transition-colors cursor-pointer"
                 >
                   สร้างสาขา (Create)
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ═══ PASSWORD CHECK CUSTOM MODAL ═══ */}
+      <AnimatePresence>
+        {isPasswordModalOpen && (
+          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.3 }}
+              className="bg-[#1C1A11] border border-[#C9A96E]/30 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl p-6 space-y-6"
+            >
+              <div className="flex flex-col items-center text-center space-y-2">
+                <div className="w-12 h-12 rounded-full bg-[#C9A96E]/10 flex items-center justify-center border border-[#C9A96E]/20 text-[#C9A96E] mb-2">
+                  <Lock className="w-5 h-5" />
+                </div>
+                <h3 className="font-serif text-2xl text-white font-light tracking-wide">เข้าสู่โหมดแก้ไข</h3>
+                <p className="text-xs text-[#8C7B6B]">กรุณาระบุรหัสผ่านเพื่อสิทธิ์ในการแก้ไขข้อมูล</p>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs text-[#C9A96E] uppercase tracking-wider font-semibold">รหัสผ่าน (Password)</label>
+                <input 
+                  type="password" 
+                  value={passwordInput}
+                  onChange={(e) => {
+                    setPasswordInput(e.target.value);
+                    setPasswordError(false);
+                  }}
+                  placeholder="•••••••••" 
+                  className={`w-full bg-[#111008] border text-white text-center text-lg tracking-[0.3em] font-mono rounded-xl px-4 py-3 outline-none transition-colors ${
+                    passwordError ? 'border-red-500/50 focus:border-red-500' : 'border-[#C9A96E]/20 focus:border-[#C9A96E]'
+                  }`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handlePasswordSubmit();
+                  }}
+                  autoFocus
+                />
+                {passwordError && (
+                  <p className="text-red-400 text-xs text-center font-medium mt-1">รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง</p>
+                )}
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button 
+                  onClick={() => {
+                    setIsPasswordModalOpen(false);
+                    setPasswordInput("");
+                    setPasswordError(false);
+                  }}
+                  className="flex-1 border border-white/10 hover:bg-[#1E1C11] text-gray-300 font-semibold text-xs py-3 rounded-xl transition-colors cursor-pointer animate-none bg-transparent"
+                >
+                  ยกเลิก (Cancel)
+                </button>
+                <button 
+                  onClick={handlePasswordSubmit}
+                  className="flex-1 bg-[#C9A96E] hover:bg-[#E8D5B0] text-black font-semibold text-xs py-3 rounded-xl transition-colors cursor-pointer"
+                >
+                  ยืนยัน (Confirm)
                 </button>
               </div>
             </motion.div>
@@ -867,49 +951,53 @@ export default function App() {
       </section>
 
       {/* ═══ 2. ENTRANCE ═══ */}
-      <section id="entrance" className="relative h-auto overflow-hidden bg-[#0a0806] border-y border-[#C9A96E]/10">
-        <div className="w-full relative overflow-hidden group bg-[#0a0806]">
-          <motion.img 
-            src={images.entrance} 
-            alt="Seasons Village Entrance" 
-            className="w-full h-auto block bg-[#0a0806] opacity-100 origin-center"
-            initial={{ scale: 1.05 }}
-            whileInView={{ scale: 1.0 }}
-            viewport={{ once: false, amount: 0.1 }}
-            transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
-            referrerPolicy="no-referrer"
-          />
-          {/* Subtle overlay for Upload when in Edit Mode */}
-          {isEditMode && (
-            <div className="absolute top-6 right-6 z-10">
-              <button
-                onClick={() => triggerImageUpload('entrance')}
-                className="flex items-center gap-2 bg-black/80 hover:bg-black/95 text-[#E8D5B0] border border-[#C9A96E]/40 font-semibold text-xs px-4 py-2 rounded-full shadow-lg transition-colors cursor-pointer pointer-events-auto"
-              >
-                <Upload className="w-4 h-4" />
-                <span>เปลี่ยนรูป (Upload)</span>
-              </button>
-            </div>
-          )}
-        </div>
+      <section id="entrance" className="bg-[#111008] py-16 px-6 md:px-12 border-b border-[#C9A96E]/10">
+        <div className="max-w-7xl mx-auto">
+          <div className="relative aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9] w-full overflow-hidden rounded-2xl border border-[#C9A96E]/15 group bg-[#0a0806] shadow-2xl">
+            <motion.img 
+              src={images.entrance} 
+              alt="Seasons Village Entrance" 
+              className="w-full h-full object-cover opacity-100 origin-center"
+              initial={{ scale: 1.05 }}
+              whileInView={{ scale: 1.0 }}
+              viewport={{ once: false, amount: 0.1 }}
+              transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
+              referrerPolicy="no-referrer"
+            />
+            {/* Dark gradient overlay to guarantee exquisite text legibility */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#111008] via-[#111008]/80 to-transparent p-10 md:p-16">
-          <div className="max-w-7xl mx-auto space-y-4">
-            <EditableText 
-              id="entrance-badge" 
-              as="div" 
-              className="inline-block border border-[#C9A96E] px-4 py-1.5 text-[10px] tracking-[5px] uppercase text-[#C9A96E] font-medium" 
-            />
-            <EditableText 
-              id="entrance-name" 
-              as="h2" 
-              className="text-4xl md:text-6xl font-serif font-light text-white block" 
-            />
-            <EditableText 
-              id="entrance-sub" 
-              as="p" 
-              className="text-[#8C7B6B] text-sm md:text-base tracking-[2px] block" 
-            />
+            {/* Subtle overlay for Upload when in Edit Mode */}
+            {isEditMode && (
+              <div className="absolute top-6 right-6 z-10">
+                <button
+                  onClick={() => triggerImageUpload('entrance')}
+                  className="flex items-center gap-2 bg-black/80 hover:bg-black/95 text-[#E8D5B0] border border-[#C9A96E]/40 font-semibold text-xs px-4 py-2 rounded-full shadow-lg transition-colors cursor-pointer pointer-events-auto"
+                >
+                  <Upload className="w-4 h-4" />
+                  <span>เปลี่ยนรูป (Upload)</span>
+                </button>
+              </div>
+            )}
+
+            {/* Text Overlay within the card container */}
+            <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 space-y-4">
+              <EditableText 
+                id="entrance-badge" 
+                as="div" 
+                className="inline-block border border-[#C9A96E]/40 px-3 py-1 text-[10px] tracking-[4px] uppercase text-[#C9A96E] font-medium rounded bg-[#111008]/40 backdrop-blur-sm" 
+              />
+              <EditableText 
+                id="entrance-name" 
+                as="h2" 
+                className="text-3xl md:text-5xl lg:text-6xl font-serif font-light text-white block leading-tight" 
+              />
+              <EditableText 
+                id="entrance-sub" 
+                as="p" 
+                className="text-[#8C7B6B] text-xs md:text-sm tracking-[1.5px] block" 
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -925,135 +1013,183 @@ export default function App() {
             <EditableText id="renders-desc-main" as="p" className="text-[#8C7B6B] text-sm md:text-base leading-relaxed mt-2 block" />
           </div>
 
-          {/* Render Item 01: หน้าร้าน */}
-          <div className="border border-[#C9A96E]/10 bg-[#151309]/50 overflow-hidden rounded-2xl flex flex-col">
-            <div className="relative w-full overflow-hidden group bg-[#0c0a06]">
-              <motion.img 
-                src={images.facade} 
-                alt="Facade Render" 
-                className="w-full h-auto block origin-center"
-                initial={{ scale: 1.05 }}
-                whileInView={{ scale: 1.0 }}
-                viewport={{ once: false, amount: 0.15 }}
-                transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
-                referrerPolicy="no-referrer"
-              />
-              {isEditMode && (
-                <div className="absolute top-4 right-4 z-10">
-                  <button
-                    onClick={() => triggerImageUpload('facade')}
-                    className="flex items-center gap-1.5 bg-black/80 hover:bg-black/95 text-[#E8D5B0] border border-[#C9A96E]/40 font-semibold text-xs px-3 py-1.5 rounded-full shadow-lg transition-colors cursor-pointer"
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>เปลี่ยนรูป (Upload)</span>
-                  </button>
+          {/* Exterior Renders (01, 02, 03) in a uniform 3-column grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Render Item 01: หน้าร้าน */}
+            <div className="border border-[#C9A96E]/10 bg-[#151309]/50 overflow-hidden rounded-2xl flex flex-col h-full">
+              <div className="relative aspect-[16/9] w-full overflow-hidden group bg-[#0c0a06]">
+                <motion.img 
+                  src={images.facade} 
+                  alt="Facade Render" 
+                  className="w-full h-full object-cover origin-center"
+                  initial={{ scale: 1.05 }}
+                  whileInView={{ scale: 1.0 }}
+                  viewport={{ once: false, amount: 0.15 }}
+                  transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
+                  referrerPolicy="no-referrer"
+                />
+                {isEditMode && (
+                  <div className="absolute top-4 right-4 z-10">
+                    <button
+                      onClick={() => triggerImageUpload('facade')}
+                      className="flex items-center gap-1.5 bg-black/80 hover:bg-black/95 text-[#E8D5B0] border border-[#C9A96E]/40 font-semibold text-xs px-3 py-1.5 rounded-full shadow-lg transition-colors cursor-pointer"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>เปลี่ยนรูป (Upload)</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="p-6 space-y-3 border-t border-[#C9A96E]/10 flex-1 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="font-serif text-4xl font-extralight text-[#C9A96E]/20 select-none">01</div>
+                  <EditableText id="render-01-title" as="h3" className="text-xl font-serif text-white block" />
+                  <EditableText id="render-01-desc" as="p" className="text-xs text-[#8C7B6B] leading-relaxed block" />
                 </div>
-              )}
+              </div>
             </div>
-            <div className="p-8 md:p-10 space-y-3 border-t border-[#C9A96E]/10">
-              <div className="font-serif text-5xl font-extralight text-[#C9A96E]/20 select-none">01</div>
-              <EditableText id="render-01-title" as="h3" className="text-2xl md:text-3xl font-serif text-white block" />
-              <EditableText id="render-01-desc" as="p" className="text-xs md:text-sm text-[#8C7B6B] leading-relaxed block" />
+
+            {/* Render Item 02: ด้านข้าง */}
+            <div className="border border-[#C9A96E]/10 bg-[#151309]/50 overflow-hidden rounded-2xl flex flex-col h-full">
+              <div className="relative aspect-[16/9] w-full overflow-hidden group bg-[#0c0a06]">
+                <motion.img 
+                  src={images.sideview} 
+                  alt="Side View Render" 
+                  className="w-full h-full object-cover origin-center"
+                  initial={{ scale: 1.05 }}
+                  whileInView={{ scale: 1.0 }}
+                  viewport={{ once: false, amount: 0.15 }}
+                  transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
+                  referrerPolicy="no-referrer"
+                />
+                {isEditMode && (
+                  <div className="absolute top-4 right-4 z-10">
+                    <button
+                      onClick={() => triggerImageUpload('sideview')}
+                      className="flex items-center gap-1.5 bg-black/80 hover:bg-black/95 text-[#E8D5B0] border border-[#C9A96E]/40 font-semibold text-xs px-3 py-1.5 rounded-full shadow-lg transition-colors cursor-pointer"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>เปลี่ยนรูป (Upload)</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="p-6 space-y-3 border-t border-[#C9A96E]/10 flex-1 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="font-serif text-4xl font-extralight text-[#C9A96E]/20 select-none">02</div>
+                  <EditableText id="render-02-title" as="h3" className="text-xl font-serif text-white block" />
+                  <EditableText id="render-02-desc" as="p" className="text-xs text-[#8C7B6B] leading-relaxed block" />
+                </div>
+              </div>
+            </div>
+
+            {/* Render Item 03: ด้านหลัง */}
+            <div className="border border-[#C9A96E]/10 bg-[#151309]/50 overflow-hidden rounded-2xl flex flex-col h-full">
+              <div className="relative aspect-[16/9] w-full overflow-hidden group bg-[#0c0a06]">
+                <motion.img 
+                  src={images.backview} 
+                  alt="Back View Render" 
+                  className="w-full h-full object-cover origin-center"
+                  initial={{ scale: 1.05 }}
+                  whileInView={{ scale: 1.0 }}
+                  viewport={{ once: false, amount: 0.15 }}
+                  transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
+                  referrerPolicy="no-referrer"
+                />
+                {isEditMode && (
+                  <div className="absolute top-4 right-4 z-10">
+                    <button
+                      onClick={() => triggerImageUpload('backview')}
+                      className="flex items-center gap-1.5 bg-black/80 hover:bg-black/95 text-[#E8D5B0] border border-[#C9A96E]/40 font-semibold text-xs px-3 py-1.5 rounded-full shadow-lg transition-colors cursor-pointer"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>เปลี่ยนรูป (Upload)</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="p-6 space-y-3 border-t border-[#C9A96E]/10 flex-1 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="font-serif text-4xl font-extralight text-[#C9A96E]/20 select-none">03</div>
+                  <EditableText id="render-03-title" as="h3" className="text-xl font-serif text-white block" />
+                  <EditableText id="render-03-desc" as="p" className="text-xs text-[#8C7B6B] leading-relaxed block" />
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Render Item 02: ด้านข้าง */}
-          <div className="border border-[#C9A96E]/10 bg-[#151309]/50 overflow-hidden rounded-2xl flex flex-col">
-            <div className="relative w-full overflow-hidden group bg-[#0c0a06]">
-              <motion.img 
-                src={images.sideview} 
-                alt="Side View Render" 
-                className="w-full h-auto block origin-center"
-                initial={{ scale: 1.05 }}
-                whileInView={{ scale: 1.0 }}
-                viewport={{ once: false, amount: 0.15 }}
-                transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
-                referrerPolicy="no-referrer"
-              />
-              {isEditMode && (
-                <div className="absolute top-4 right-4 z-10">
-                  <button
-                    onClick={() => triggerImageUpload('sideview')}
-                    className="flex items-center gap-1.5 bg-black/80 hover:bg-black/95 text-[#E8D5B0] border border-[#C9A96E]/40 font-semibold text-xs px-3 py-1.5 rounded-full shadow-lg transition-colors cursor-pointer"
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>เปลี่ยนรูป (Upload)</span>
-                  </button>
+          {/* Interior Renders (04, 06) in a uniform 2-column grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Render Item 04: จัดแสดงชั้น 1 */}
+            <div className="border border-[#C9A96E]/10 bg-[#151309]/50 overflow-hidden rounded-2xl flex flex-col h-full">
+              <div className="relative aspect-[16/9] w-full overflow-hidden group bg-[#0c0a06]">
+                <motion.img 
+                  src={images.floor1_interior} 
+                  alt="1st Floor Interior Render" 
+                  className="w-full h-full object-cover origin-center"
+                  initial={{ scale: 1.05 }}
+                  whileInView={{ scale: 1.0 }}
+                  viewport={{ once: false, amount: 0.15 }}
+                  transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
+                  referrerPolicy="no-referrer"
+                />
+                {isEditMode && (
+                  <div className="absolute top-4 right-4 z-10">
+                    <button
+                      onClick={() => triggerImageUpload('floor1_interior')}
+                      className="flex items-center gap-1.5 bg-black/80 hover:bg-black/95 text-[#E8D5B0] border border-[#C9A96E]/40 font-semibold text-xs px-3.5 py-1.5 rounded-full shadow-lg transition-colors cursor-pointer"
+                    >
+                      <Upload className="w-4 h-4" />
+                      <span>เปลี่ยนรูป (Upload)</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="p-6 md:p-8 space-y-3 border-t border-[#C9A96E]/10 flex-1 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="font-serif text-4xl font-extralight text-[#C9A96E]/20 select-none">04</div>
+                  <EditableText id="render-04-title" as="h3" className="text-2xl font-serif text-white block" />
+                  <EditableText id="render-04-desc" as="p" className="text-xs md:text-sm text-[#8C7B6B] leading-relaxed block" />
                 </div>
-              )}
+              </div>
             </div>
-            <div className="p-8 md:p-10 space-y-3 border-t border-[#C9A96E]/10">
-              <div className="font-serif text-5xl font-extralight text-[#C9A96E]/20 select-none">02</div>
-              <EditableText id="render-02-title" as="h3" className="text-2xl md:text-3xl font-serif text-white block" />
-              <EditableText id="render-02-desc" as="p" className="text-xs md:text-sm text-[#8C7B6B] leading-relaxed block" />
+
+            {/* Render Item 06: จัดแสดงชั้น 2 */}
+            <div className="border border-[#C9A96E]/10 bg-[#151309]/50 overflow-hidden rounded-2xl flex flex-col h-full">
+              <div className="relative aspect-[16/9] w-full overflow-hidden group bg-[#0c0a06]">
+                <motion.img 
+                  src={images.floor2_interior} 
+                  alt="2nd Floor Interior Render" 
+                  className="w-full h-full object-cover origin-center"
+                  initial={{ scale: 1.05 }}
+                  whileInView={{ scale: 1.0 }}
+                  viewport={{ once: false, amount: 0.15 }}
+                  transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
+                  referrerPolicy="no-referrer"
+                />
+                {isEditMode && (
+                  <div className="absolute top-4 right-4 z-10">
+                    <button
+                      onClick={() => triggerImageUpload('floor2_interior')}
+                      className="flex items-center gap-1.5 bg-black/80 hover:bg-black/95 text-[#E8D5B0] border border-[#C9A96E]/40 font-semibold text-xs px-3.5 py-1.5 rounded-full shadow-lg transition-colors cursor-pointer"
+                    >
+                      <Upload className="w-4 h-4" />
+                      <span>เปลี่ยนรูป (Upload)</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="p-6 md:p-8 space-y-3 border-t border-[#C9A96E]/10 flex-1 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="font-serif text-4xl font-extralight text-[#C9A96E]/20 select-none">06</div>
+                  <EditableText id="render-06-title" as="h3" className="text-2xl font-serif text-white block" />
+                  <EditableText id="render-06-desc" as="p" className="text-xs md:text-sm text-[#8C7B6B] leading-relaxed block" />
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Render Item 03: ด้านหลัง */}
-          <div className="border border-[#C9A96E]/10 bg-[#151309]/50 overflow-hidden rounded-2xl flex flex-col">
-            <div className="relative w-full overflow-hidden group bg-[#0c0a06]">
-              <motion.img 
-                src={images.backview} 
-                alt="Back View Render" 
-                className="w-full h-auto block origin-center"
-                initial={{ scale: 1.05 }}
-                whileInView={{ scale: 1.0 }}
-                viewport={{ once: false, amount: 0.15 }}
-                transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
-                referrerPolicy="no-referrer"
-              />
-              {isEditMode && (
-                <div className="absolute top-4 right-4 z-10">
-                  <button
-                    onClick={() => triggerImageUpload('backview')}
-                    className="flex items-center gap-1.5 bg-black/80 hover:bg-black/95 text-[#E8D5B0] border border-[#C9A96E]/40 font-semibold text-xs px-3 py-1.5 rounded-full shadow-lg transition-colors cursor-pointer"
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>เปลี่ยนรูป (Upload)</span>
-                  </button>
-                </div>
-              )}
-            </div>
-            <div className="p-8 md:p-10 space-y-3 border-t border-[#C9A96E]/10">
-              <div className="font-serif text-5xl font-extralight text-[#C9A96E]/20 select-none">03</div>
-              <EditableText id="render-03-title" as="h3" className="text-2xl md:text-3xl font-serif text-white block" />
-              <EditableText id="render-03-desc" as="p" className="text-xs md:text-sm text-[#8C7B6B] leading-relaxed block" />
-            </div>
-          </div>
-
-          {/* Render Item 04: จัดแสดงชั้น 1 (รูปใหญ่) */}
-          <div className="border border-[#C9A96E]/10 bg-[#151309]/50 overflow-hidden rounded-2xl flex flex-col">
-            <div className="relative w-full overflow-hidden group bg-[#0c0a06]">
-              <motion.img 
-                src={images.floor1_interior} 
-                alt="1st Floor Interior Render" 
-                className="w-full h-auto block origin-center"
-                initial={{ scale: 1.05 }}
-                whileInView={{ scale: 1.0 }}
-                viewport={{ once: false, amount: 0.15 }}
-                transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
-                referrerPolicy="no-referrer"
-              />
-              {isEditMode && (
-                <div className="absolute top-4 right-4 z-10">
-                  <button
-                    onClick={() => triggerImageUpload('floor1_interior')}
-                    className="flex items-center gap-1.5 bg-black/80 hover:bg-black/95 text-[#E8D5B0] border border-[#C9A96E]/40 font-semibold text-xs px-3.5 py-1.5 rounded-full shadow-lg transition-colors cursor-pointer"
-                  >
-                    <Upload className="w-4 h-4" />
-                    <span>เปลี่ยนรูป (Upload)</span>
-                  </button>
-                </div>
-              )}
-            </div>
-            <div className="p-8 md:p-10 space-y-3 border-t border-[#C9A96E]/10">
-              <div className="font-serif text-5xl font-extralight text-[#C9A96E]/20 select-none">04</div>
-              <EditableText id="render-04-title" as="h3" className="text-2xl md:text-3xl font-serif text-white block" />
-              <EditableText id="render-04-desc" as="p" className="text-xs md:text-sm text-[#8C7B6B] leading-relaxed block" />
-            </div>
-          </div>
-
-          {/* Render Item 05: INTERACTIVE BLUEPRINT SHOWROOM (Replacing static floor plan) */}
+          {/* Render Item 05: INTERACTIVE BLUEPRINT SHOWROOM (Full width, positioned below the grid cards) */}
           <div className="border border-[#C9A96E]/15 rounded-2xl overflow-hidden bg-[#121109] p-8 md:p-12 space-y-8 relative">
             <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#C9A96E]/40 to-transparent" />
             
@@ -1072,38 +1208,6 @@ export default function App() {
                 floorPlans={floorPlanImages}
                 onFloorPlansChange={handleFloorPlansChange}
               />
-            </div>
-          </div>
-
-          {/* Render Item 06: จัดแสดงชั้น 2 (รูปใหญ่) */}
-          <div className="border border-[#C9A96E]/10 bg-[#151309]/50 overflow-hidden rounded-2xl flex flex-col">
-            <div className="relative w-full overflow-hidden group bg-[#0c0a06]">
-              <motion.img 
-                src={images.floor2_interior} 
-                alt="2nd Floor Interior Render" 
-                className="w-full h-auto block origin-center"
-                initial={{ scale: 1.05 }}
-                whileInView={{ scale: 1.0 }}
-                viewport={{ once: false, amount: 0.15 }}
-                transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
-                referrerPolicy="no-referrer"
-              />
-              {isEditMode && (
-                <div className="absolute top-4 right-4 z-10">
-                  <button
-                    onClick={() => triggerImageUpload('floor2_interior')}
-                    className="flex items-center gap-1.5 bg-black/80 hover:bg-black/95 text-[#E8D5B0] border border-[#C9A96E]/40 font-semibold text-xs px-3.5 py-1.5 rounded-full shadow-lg transition-colors cursor-pointer"
-                  >
-                    <Upload className="w-4 h-4" />
-                    <span>เปลี่ยนรูป (Upload)</span>
-                  </button>
-                </div>
-              )}
-            </div>
-            <div className="p-8 md:p-10 space-y-3 border-t border-[#C9A96E]/10">
-              <div className="font-serif text-5xl font-extralight text-[#C9A96E]/20 select-none">06</div>
-              <EditableText id="render-06-title" as="h3" className="text-2xl md:text-3xl font-serif text-white block" />
-              <EditableText id="render-06-desc" as="p" className="text-xs md:text-sm text-[#8C7B6B] leading-relaxed block" />
             </div>
           </div>
 
