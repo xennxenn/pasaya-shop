@@ -67,20 +67,27 @@ const initialZones: ShowroomZone[] = [
   }
 ];
 
-export const InteractiveFloorplan: React.FC<InteractiveFloorplanProps> = ({ isEditMode }) => {
+interface InteractiveFloorplanProps {
+  isEditMode: boolean;
+  onZoneSelect?: (zoneId: string) => void;
+  zones: ShowroomZone[];
+  onZonesChange: (newZones: ShowroomZone[]) => void;
+  floorPlans: Record<number, string>;
+  onFloorPlansChange: (newFloorPlans: Record<number, string>) => void;
+}
+
+export const InteractiveFloorplan: React.FC<InteractiveFloorplanProps> = ({ 
+  isEditMode, 
+  zones, 
+  onZonesChange, 
+  floorPlans, 
+  onFloorPlansChange 
+}) => {
   const [activeFloor, setActiveFloor] = useState<1 | 2>(1);
-  const [zones, setZones] = useState<ShowroomZone[]>(() => {
-    const saved = localStorage.getItem('pasaya_showroom_zones');
-    return saved ? JSON.parse(saved) : initialZones;
-  });
   const [selectedZoneId, setSelectedZoneId] = useState<string>('zone-a');
   const [editingZoneId, setEditingZoneId] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [floorPlans, setFloorPlans] = useState<Record<number, string>>(() => {
-    const saved = localStorage.getItem('pasaya_floorplan_images');
-    return saved ? JSON.parse(saved) : { 1: '', 2: '' };
-  });
   const [viewMode, setViewMode] = useState<'hybrid' | 'imageOnly' | 'gridOnly'>('hybrid');
   const [bgOpacity, setBgOpacity] = useState<number>(0.55);
 
@@ -113,8 +120,7 @@ export const InteractiveFloorplan: React.FC<InteractiveFloorplanProps> = ({ isEd
           const dataUrl = canvas.toDataURL('image/jpeg', 0.90);
           
           const updatedPlans = { ...floorPlans, [activeFloor]: dataUrl };
-          setFloorPlans(updatedPlans);
-          localStorage.setItem('pasaya_floorplan_images', JSON.stringify(updatedPlans));
+          onFloorPlansChange(updatedPlans);
           
           const toast = document.getElementById('saveToast');
           if (toast) {
@@ -132,13 +138,11 @@ export const InteractiveFloorplan: React.FC<InteractiveFloorplanProps> = ({ isEd
 
   const handleResetFloorPlan = () => {
     const updatedPlans = { ...floorPlans, [activeFloor]: '' };
-    setFloorPlans(updatedPlans);
-    localStorage.setItem('pasaya_floorplan_images', JSON.stringify(updatedPlans));
+    onFloorPlansChange(updatedPlans);
   };
 
   const saveZones = (updatedZones: ShowroomZone[]) => {
-    setZones(updatedZones);
-    localStorage.setItem('pasaya_showroom_zones', JSON.stringify(updatedZones));
+    onZonesChange(updatedZones);
   };
 
   const handleUpdateZoneField = (id: string, field: keyof ShowroomZone, value: any) => {

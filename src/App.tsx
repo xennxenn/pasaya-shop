@@ -177,31 +177,235 @@ const defaultImages = {
   floor2_interior: 'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&q=80&w=1200'
 };
 
+// Initial template structures for default and new stores
+const initialZones = [
+  {
+    id: 'zone-a',
+    name: 'Luxury & Classic Curtain Zone',
+    floor: 1,
+    description: 'จัดแสดงผ้าม่านระดับพรีเมียม ลวดลาย Jacquard สุดประณีต และผ้าไหมทอมือหรูหราที่สะท้อนรสนิยมขั้นสูง เหมาะสำหรับห้องโถงและห้องรับแขกของคฤหาสน์หรู',
+    products: ['ผ้าม่านไหมแจ็คการ์ดพรีเมียม', 'ม่านหลุยส์แบบคลาสสิก', 'พู่ประดับม่านนำเข้าระดับไฮเอนด์'],
+    keyFeature: 'ผ้าทอพิเศษผสมด้ายทอง 24K และสารป้องกันไรฝุ่น',
+    icon: 'Compass'
+  },
+  {
+    id: 'zone-b',
+    name: 'Modern & Smart Motorized curtains',
+    floor: 1,
+    description: 'นวัตกรรมผ้าม่านอัจฉริยะควบคุมด้วยเสียงและระบบสัมผัส ผสมผสานเทคโนโลยีการกรองแสง UV สูงถึง 99% และม่านกันความร้อนประหยัดพลังงาน',
+    products: ['ม่านม้วนมอเตอร์แบรนด์ฝรั่งเศส Somfy', 'ผ้ากันแสง Blackout 100% สัมผัสนุ่ม', 'ม่านไฟฟ้าควบคุมผ่านสมาร์ตโฟน'],
+    keyFeature: 'รองรับการเชื่อมต่อกับระบบ Smart Home (Apple HomeKit, Google Home)',
+    icon: 'Settings'
+  },
+  {
+    id: 'zone-c',
+    name: 'Decorative Fabrics & Custom Trims',
+    floor: 1,
+    description: 'ศูนย์รวมผ้าบุเฟอร์นิเจอร์ โซฟา ปลอกหมอนอิง และงานสั่งตัดพิเศษ ให้ลูกค้าเลือกมิกซ์แอนด์แมตช์สีสันเพื่อสร้างเอกลักษณ์เฉพาะตัวให้บ้าน',
+    products: ['ผ้าบุโซฟานวัตกรรมกันน้ำและคราบสกปรก', 'ปลอกหมอนผ้าแจ็คการ์ดประดับคริสตัล', 'พรมและวอลเปเปอร์ผ้าคอลเลกชันพิเศษ'],
+    keyFeature: 'เทคโนโลยีผ้ากันคราบและทำความสะอาดง่ายด้วยน้ำเปล่า (Easy Clean Technology)',
+    icon: 'LayoutDashboard'
+  },
+  {
+    id: 'zone-lounge',
+    name: 'Marble Consultation Lounge',
+    floor: 1,
+    description: 'เคาน์เตอร์หินอ่อนขนาดยักษ์สำหรับต้อนรับและให้คำปรึกษาอย่างใกล้ชิดโดย Curtain Designer ผู้เชี่ยวชาญ พร้อมชุดตัวอย่างผ้าขนาดจริง (Sample Books) นับพันรูปแบบ',
+    products: ['บริการที่ปรึกษาวัดพื้นที่และออกแบบ 3D ฟรี', 'สมุดตัวอย่างคอลเลกชันระดับโลก', 'เครื่องดื่มต้อนรับสูตรพรีเมียมและกาแฟแบรนด์ดัง'],
+    keyFeature: 'การจำลองมุมแสงธรรมชาติ (Daylight Simulator) เพื่อการเลือกสีผ้าม่านที่แม่นยำที่สุด',
+    icon: 'Coffee'
+  },
+  {
+    id: 'suite-royal',
+    name: 'Royal Bedding Showcase',
+    floor: 2,
+    description: 'ห้องตัวอย่างหรูหราจัดแสดงคอลเลกชันเครื่องนอนระดับพรีเมียมทอ 1100 เส้นด้าย ผลิตจากเส้นใยไหมธรรมชาติและซาติน ให้สัมผัสเย็นสบายเป็นพิเศษ (Cool Mode)',
+    products: ['ชุดผ้าปูที่นอนไหมแท้ Luxury Silk', 'ผ้านวมขนห่านเทียมไร้สารก่อภูมิแพ้', 'หมอนหนุนปรับระดับความสูงเฉพาะบุคคล'],
+    keyFeature: 'ผ้าปูที่นอนปลอดสารพิษก่อมะเร็ง (Formaldehyde-Free) ปลอดภัยต่อระบบหายใจรายแรกในเอเชีย',
+    icon: 'Award'
+  },
+  {
+    id: 'suite-b2b',
+    name: 'B2B Architect & Designer Suite',
+    floor: 2,
+    description: 'ห้องประชุมขนาดใหญ่และ Co-working Space สำหรับสถาปนิก นักออกแบบภายใน และผู้พัฒนาอสังหาริมทรัพย์ระดับประเทศ เพื่อคุยสเปกโครงการระดับพรีเมียม',
+    products: ['ระบบโชว์เคส Digital Screen แสดงผลงานกว่า 1,000 โครงการ', 'คลังตัวอย่างผ้าเฉพาะงานโครงการ (Contract Fabrics)', 'โปรแกรมคำนวณราคาด่วนสำหรับงานโครงการขนาดใหญ่'],
+    keyFeature: 'ผ้าป้องกันการลามไฟระดับมาตรฐานสากล (Flame Retardant) สำหรับกลุ่มโรงแรม 5 ดาว',
+    icon: 'ShieldCheck'
+  }
+];
+
+const initialBudgetItems = [
+  {
+    id: 'budget-1',
+    category: 'ค่าก่อสร้าง & รีโนเวท',
+    subCategory: 'Construction & Renovation',
+    amount: 2500000,
+    note: 'โครงสร้างสองชั้น ผนัง ฝ้าเพดาน ระบบแสงสว่างระดับ High-end'
+  },
+  {
+    id: 'budget-2',
+    category: 'ค่าตกแต่งภายในร้าน',
+    subCategory: 'Interior & Decoration',
+    amount: 1800000,
+    note: 'เคาน์เตอร์ที่ปรึกษาหินอ่อน ชั้นโชว์ผ้าม่าน โซนต้อนรับพรีเมียม'
+  },
+  {
+    id: 'budget-3',
+    category: 'ค่าเช่าพื้นที่เปิดสาขา (ปีที่ 1)',
+    subCategory: 'Annual Rental Fee',
+    amount: 1440000,
+    note: 'คำนวณจากประมาณ 120,000 บาท/เดือน พื้นที่ ~300 ตร.ม.'
+  },
+  {
+    id: 'budget-4',
+    category: 'ค่าจ้างพนักงานขาย & ที่ปรึกษา (รายปี)',
+    subCategory: 'HR & Staffing (Annual)',
+    amount: 2160000,
+    note: 'ทีมที่ปรึกษาและทีมติดตั้งรวม 6–8 คน เฉลี่ย 22,500 บ./คน/เดือน'
+  },
+  {
+    id: 'budget-5',
+    category: 'งบประชาสัมพันธ์ & การตลาดเปิดตัว',
+    subCategory: 'Advertising & Marketing',
+    amount: 600000,
+    note: 'Grand Opening, ยิงแอดพิกัดหมู่บ้านหรู, สื่อในคอมมูนิตี้มอลล์'
+  }
+];
+
+const initialBarters = [
+  { id: 'barter-1', name: 'โคมไฟแชนเดอเลียร์ & ระบบส่องสว่าง (Lighting)', originalCost: 350000, icon: '💡', active: true },
+  { id: 'barter-2', name: 'โซฟารับรองและโต๊ะหินอ่อนโชว์รูม (Furniture)', originalCost: 280000, icon: '🛋️', active: true },
+  { id: 'barter-3', name: 'ชุดเครื่องนอนตัวอย่าง (Bedding Display)', originalCost: 150000, icon: '🛏️', active: true },
+  { id: 'barter-4', name: 'จอระบบ Digital Signage & วิดีโอวอลล์', originalCost: 200000, icon: '📺', active: false },
+  { id: 'barter-5', name: 'งานตกแต่งศิลปะ ผนัง & ภาพวาดแคนวาส', originalCost: 120000, icon: '🎨', active: false }
+];
+
 export default function App() {
-  const [isEditMode, setIsEditMode] = useState<boolean>(() => {
-    const saved = localStorage.getItem('pasaya_edit_mode');
-    return saved ? JSON.parse(saved) : true;
-  });
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [activeStoreId, setActiveStoreId] = useState<string>("seasons-village");
+  const [stores, setStores] = useState<Record<string, any>>({});
 
-  const [texts, setTexts] = useState<Record<string, string>>(() => {
-    const saved = localStorage.getItem('pasaya_editable_texts');
-    return saved ? JSON.parse(saved) : defaultTexts;
-  });
+  // Secret Click Detector (5 Clicks on Top Right viewport)
+  const [secretClicks, setSecretClicks] = useState<number[]>([]);
+  const handleSecretClick = () => {
+    const now = Date.now();
+    const recent = [...secretClicks, now].filter(t => now - t < 3000);
+    setSecretClicks(recent);
+    if (recent.length >= 5) {
+      setIsEditMode(true);
+      setSecretClicks([]);
+      showToastMessage("เปิดโหมดแก้ไขแล้ว ✨");
+    }
+  };
 
-  const [lists, setLists] = useState<Record<string, string[]>>(() => {
-    const saved = localStorage.getItem('pasaya_lists');
-    return saved ? JSON.parse(saved) : defaultLists;
-  });
-
-  const [images, setImages] = useState<Record<string, string>>(() => {
-    const saved = localStorage.getItem('pasaya_editable_images');
-    return saved ? JSON.parse(saved) : defaultImages;
-  });
-
+  const [toastMessage, setToastMessage] = useState("บันทึกข้อมูลแล้ว ✨");
   const [showToast, setShowToast] = useState(false);
+
+  const showToastMessage = (msg: string) => {
+    setToastMessage(msg);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2500);
+  };
+
   const [activeImageId, setActiveImageId] = useState<string | null>(null);
   const [lightboxImage, setLightboxImage] = useState<{ src: string; title: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Store Management Modals
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newStoreName, setNewStoreName] = useState("");
+
+  // Load from server on mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const res = await fetch('/api/data');
+        const data = await res.json();
+        
+        let currentStores = data.stores || {};
+        let currentActiveId = data.activeStoreId || "seasons-village";
+        
+        // If empty, initialize the default "seasons-village" store
+        if (!currentStores["seasons-village"]) {
+          currentStores["seasons-village"] = {
+            id: "seasons-village",
+            name: "Seasons Village ราชพฤกษ์",
+            texts: defaultTexts,
+            lists: defaultLists,
+            images: defaultImages,
+            showroomZones: initialZones,
+            floorPlanImages: { 1: '', 2: '' },
+            budgetItems: initialBudgetItems,
+            barterItems: initialBarters
+          };
+          
+          await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ activeStoreId: currentActiveId, stores: currentStores }),
+          });
+        }
+        
+        setStores(currentStores);
+        setActiveStoreId(currentActiveId);
+      } catch (error) {
+        console.error("Failed to fetch store data from server:", error);
+        // Fallback local
+        setStores({
+          "seasons-village": {
+            id: "seasons-village",
+            name: "Seasons Village ราชพฤกษ์",
+            texts: defaultTexts,
+            lists: defaultLists,
+            images: defaultImages,
+            showroomZones: initialZones,
+            floorPlanImages: { 1: '', 2: '' },
+            budgetItems: initialBudgetItems,
+            barterItems: initialBarters
+          }
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  // Save changes to the backend
+  const saveToServer = async (activeId: string, allStores: Record<string, any>) => {
+    try {
+      await fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activeStoreId: activeId, stores: allStores }),
+      });
+    } catch (error) {
+      console.error("Failed to save data to server:", error);
+    }
+  };
+
+  // Derive active store details dynamically
+  const activeStore = stores[activeStoreId] || {
+    id: "seasons-village",
+    name: "Seasons Village ราชพฤกษ์",
+    texts: defaultTexts,
+    lists: defaultLists,
+    images: defaultImages,
+    showroomZones: initialZones,
+    floorPlanImages: { 1: '', 2: '' },
+    budgetItems: initialBudgetItems,
+    barterItems: initialBarters
+  };
+
+  const texts = activeStore.texts || defaultTexts;
+  const lists = activeStore.lists || defaultLists;
+  const images = activeStore.images || defaultImages;
+  const showroomZones = activeStore.showroomZones || initialZones;
+  const floorPlanImages = activeStore.floorPlanImages || { 1: '', 2: '' };
+  const budgetItems = activeStore.budgetItems || initialBudgetItems;
+  const barterItems = activeStore.barterItems || initialBarters;
 
   // Auto-reveal elements on scroll
   useEffect(() => {
@@ -217,28 +421,35 @@ export default function App() {
       });
     };
     window.addEventListener('scroll', handleScroll);
-    handleScroll(); // Trigger initial view check
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const showSaveToast = () => {
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 2000);
+  const saveStoresAndSync = (updatedStores: Record<string, any>) => {
+    setStores(updatedStores);
+    saveToServer(activeStoreId, updatedStores);
   };
 
   const handleTextChange = (id: string, newVal: string) => {
-    const updated = { ...texts, [id]: newVal };
-    setTexts(updated);
-    localStorage.setItem('pasaya_editable_texts', JSON.stringify(updated));
-    showSaveToast();
+    const updatedStore = {
+      ...activeStore,
+      texts: { ...texts, [id]: newVal }
+    };
+    const updatedStores = { ...stores, [activeStoreId]: updatedStore };
+    saveStoresAndSync(updatedStores);
+    showToastMessage("บันทึกข้อมูลเรียบร้อย ✨");
   };
 
   const handleListChange = (listKey: string, index: number, newVal: string) => {
-    const updatedLists = { ...lists };
-    updatedLists[listKey][index] = newVal;
-    setLists(updatedLists);
-    localStorage.setItem('pasaya_lists', JSON.stringify(updatedLists));
-    showSaveToast();
+    const updatedList = [...(lists[listKey] || [])];
+    updatedList[index] = newVal;
+    const updatedStore = {
+      ...activeStore,
+      lists: { ...lists, [listKey]: updatedList }
+    };
+    const updatedStores = { ...stores, [activeStoreId]: updatedStore };
+    saveStoresAndSync(updatedStores);
+    showToastMessage("บันทึกข้อมูลเรียบร้อย ✨");
   };
 
   const triggerImageUpload = (id: string) => {
@@ -255,7 +466,7 @@ export default function App() {
         const canvas = document.createElement('canvas');
         let width = img.width;
         let height = img.height;
-        const maxSize = 2000;
+        const maxSize = 1600; // Efficient compression size
 
         if (width > height && width > maxSize) {
           height *= maxSize / width;
@@ -270,7 +481,7 @@ export default function App() {
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.90);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85); // good balance of size/quality
           callback(dataUrl);
         }
       };
@@ -285,10 +496,13 @@ export default function App() {
     const file = e.target.files?.[0];
     if (file && activeImageId) {
       compressImage(file, (base64) => {
-        const updated = { ...images, [activeImageId]: base64 };
-        setImages(updated);
-        localStorage.setItem('pasaya_editable_images', JSON.stringify(updated));
-        showSaveToast();
+        const updatedStore = {
+          ...activeStore,
+          images: { ...images, [activeImageId]: base64 }
+        };
+        const updatedStores = { ...stores, [activeImageId]: updatedStore };
+        saveStoresAndSync(updatedStores);
+        showToastMessage("อัปโหลดรูปภาพแล้ว ✨");
       });
     }
     e.target.value = ''; // Reset uploader
@@ -298,7 +512,107 @@ export default function App() {
   const toggleEditMode = () => {
     const newMode = !isEditMode;
     setIsEditMode(newMode);
-    localStorage.setItem('pasaya_edit_mode', JSON.stringify(newMode));
+  };
+
+  const handleZonesChange = (newZones: any[]) => {
+    const updatedStore = {
+      ...activeStore,
+      showroomZones: newZones
+    };
+    const updatedStores = { ...stores, [activeStoreId]: updatedStore };
+    saveStoresAndSync(updatedStores);
+    showToastMessage("บันทึกข้อมูลผังร้านแล้ว ✨");
+  };
+
+  const handleFloorPlansChange = (newFloorPlans: Record<number, string>) => {
+    const updatedStore = {
+      ...activeStore,
+      floorPlanImages: newFloorPlans
+    };
+    const updatedStores = { ...stores, [activeStoreId]: updatedStore };
+    saveStoresAndSync(updatedStores);
+    showToastMessage("อัปโหลดภาพผังร้านแล้ว ✨");
+  };
+
+  const handleBudgetChange = (newItems: any[]) => {
+    const updatedStore = {
+      ...activeStore,
+      budgetItems: newItems
+    };
+    const updatedStores = { ...stores, [activeStoreId]: updatedStore };
+    saveStoresAndSync(updatedStores);
+    showToastMessage("บันทึกงบประมาณแล้ว ✨");
+  };
+
+  const handleBartersChange = (newBarters: any[]) => {
+    const updatedStore = {
+      ...activeStore,
+      barterItems: newBarters
+    };
+    const updatedStores = { ...stores, [activeStoreId]: updatedStore };
+    saveStoresAndSync(updatedStores);
+    showToastMessage("บันทึกส่วนลดแล้ว ✨");
+  };
+
+  // Add a new store branch page
+  const handleAddStore = () => {
+    if (!newStoreName.trim()) return;
+    const cleanId = newStoreName.trim().toLowerCase()
+      .replace(/[^a-z0-9\u0E00-\u0E7F]+/g, '-') // Support Thai slug as well
+      .replace(/(^-|-$)/g, '');
+    
+    const finalId = cleanId || "store-" + Date.now();
+    
+    // Duplicate standard default templates but customize the name & titles
+    const newStoreData = {
+      id: finalId,
+      name: newStoreName.trim(),
+      texts: {
+        ...defaultTexts,
+        'hero-title-new': 'PASAYA Shop',
+        'hero-title-flagship': newStoreName.trim(),
+        'hero-subtitle': 'Showroom & Strategic Showcase',
+        'entrance-name': newStoreName.trim()
+      },
+      lists: { ...defaultLists },
+      images: { ...defaultImages },
+      showroomZones: [...initialZones],
+      floorPlanImages: { 1: '', 2: '' },
+      budgetItems: [...initialBudgetItems],
+      barterItems: [...initialBarters]
+    };
+
+    const updatedStores = { ...stores, [finalId]: newStoreData };
+    setStores(updatedStores);
+    setActiveStoreId(finalId);
+    saveToServer(finalId, updatedStores);
+    
+    setNewStoreName("");
+    setIsAddModalOpen(false);
+    showToastMessage(`เพิ่มหน้าสาขา ${newStoreName.trim()} สำเร็จ ✨`);
+  };
+
+  // Delete a store branch page
+  const handleDeleteStore = (storeIdToDelete: string) => {
+    if (storeIdToDelete === "seasons-village") {
+      alert("ไม่สามารถลบสาขาหลัก Seasons Village ได้");
+      return;
+    }
+    const confirmDelete = window.confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบสาขา "${stores[storeIdToDelete]?.name}"?`);
+    if (!confirmDelete) return;
+
+    const updatedStores = { ...stores };
+    delete updatedStores[storeIdToDelete];
+    
+    const remainingStoreIds = Object.keys(updatedStores);
+    const newActiveId = remainingStoreIds.includes("seasons-village") 
+      ? "seasons-village" 
+      : remainingStoreIds[0] || "";
+
+    setStores(updatedStores);
+    setActiveStoreId(newActiveId);
+    saveToServer(newActiveId, updatedStores);
+    showToastMessage("ลบสาขาสำเร็จ ✨");
   };
 
   // Reusable inline editable text element
@@ -374,7 +688,131 @@ export default function App() {
   };
 
   return (
-    <div className="bg-[#111008] text-[#FAF8F5] font-sans overflow-x-hidden selection:bg-[#C9A96E] selection:text-black">
+    <div className="bg-[#111008] text-[#FAF8F5] font-sans overflow-x-hidden selection:bg-[#C9A96E] selection:text-black pt-20">
+      {/* Secret click target for entering edit mode (Top Right, 5 clicks within 3 seconds) */}
+      <div 
+        onClick={handleSecretClick} 
+        className="fixed top-0 right-0 w-24 h-24 z-[9999] cursor-default opacity-0 select-none" 
+        title="Secret Edit Trigger"
+      />
+
+      {/* ═══ LUXURY FLOATING NAVBAR ═══ */}
+      <header className="fixed top-0 left-0 right-0 h-20 bg-black/60 backdrop-blur-md border-b border-[#C9A96E]/10 z-50 flex items-center justify-between px-6 md:px-12">
+        {/* Left Side: Premium Logo */}
+        <div className="flex items-center gap-3">
+          <span className="font-serif text-2xl font-light tracking-[8px] text-[#E8D5B0]">PASAYA</span>
+          <span className="text-[10px] tracking-[3px] uppercase text-[#C9A96E] font-medium border-l border-[#C9A96E]/20 pl-3">Shop</span>
+        </div>
+
+        {/* Right Side: Store Selection Dropdown & Multi-store actions */}
+        <div className="flex items-center gap-4">
+          <div className="relative group/store">
+            <div className="flex items-center gap-2 bg-[#1E1C11] border border-[#C9A96E]/25 px-4 py-2 rounded-full cursor-pointer hover:border-[#C9A96E]/70 transition-all">
+              <Store className="w-4 h-4 text-[#C9A96E]" />
+              <span className="text-xs md:text-sm text-white font-medium">{activeStore.name}</span>
+              <span className="text-[#C9A96E] text-[10px]">▼</span>
+            </div>
+
+            {/* Dropdown options */}
+            <div className="absolute right-0 mt-2 w-72 bg-[#1A1911] border border-[#C9A96E]/20 rounded-xl shadow-2xl opacity-0 translate-y-1 pointer-events-none group-hover/store:opacity-100 group-hover/store:translate-y-0 group-hover/store:pointer-events-auto transition-all duration-250 z-50 p-2 space-y-1">
+              <div className="text-[10px] uppercase tracking-wider text-[#8C7B6B] px-3 py-1 border-b border-white/5 font-semibold">
+                สาขา / ร้านค้า (Branches)
+              </div>
+              <div className="max-h-60 overflow-y-auto space-y-1">
+                {Object.values(stores).map((store: any) => (
+                  <div 
+                    key={store.id}
+                    className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors cursor-pointer ${
+                      activeStoreId === store.id 
+                        ? 'bg-[#C9A96E]/10 text-[#C9A96E] font-medium' 
+                        : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                    }`}
+                    onClick={() => {
+                      setActiveStoreId(store.id);
+                      saveToServer(store.id, stores);
+                    }}
+                  >
+                    <span className="truncate pr-2">{store.name}</span>
+                    {activeStoreId === store.id && <Check className="w-3.5 h-3.5 text-[#C9A96E] flex-shrink-0" />}
+                    
+                    {/* Delete button (only in edit mode, and cannot delete seasons-village) */}
+                    {isEditMode && store.id !== "seasons-village" && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteStore(store.id);
+                        }}
+                        className="p-1 hover:bg-red-950/40 rounded text-red-400 hover:text-red-500 transition-colors"
+                        title="ลบสาขา"
+                      >
+                        🗑️
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Add Store Button */}
+              <button 
+                onClick={() => setIsAddModalOpen(true)}
+                className="w-full flex items-center justify-center gap-1.5 bg-[#C9A96E] hover:bg-[#E8D5B0] text-black font-semibold text-xs py-2 rounded-lg transition-colors mt-2 cursor-pointer"
+              >
+                <span>+ เพิ่มสาขาใหม่</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* ═══ ADD STORE CUSTOM MODAL ═══ */}
+      <AnimatePresence>
+        {isAddModalOpen && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.3 }}
+              className="bg-[#1C1A11] border border-[#C9A96E]/30 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl p-6 space-y-6"
+            >
+              <div className="space-y-2">
+                <h3 className="font-serif text-2xl text-white font-light tracking-wide">เพิ่มสาขาใหม่ (Add New Branch)</h3>
+                <p className="text-xs text-[#8C7B6B]">คัดลอกรูปแบบสาขาหลักเพื่อปรับแต่งข้อมูล ตัวอย่างภาพ และงบประมาณเป็นของสาขาใหม่ได้อิสระ</p>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs text-[#C9A96E] uppercase tracking-wider font-semibold">ชื่อสาขา (Branch Name)</label>
+                <input 
+                  type="text" 
+                  value={newStoreName}
+                  onChange={(e) => setNewStoreName(e.target.value)}
+                  placeholder="เช่น PASAYA Shop ทองหล่อ, Mega Bangna" 
+                  className="w-full bg-[#111008] border border-[#C9A96E]/20 focus:border-[#C9A96E] text-white text-sm rounded-xl px-4 py-3 outline-none transition-colors"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleAddStore();
+                  }}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button 
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="flex-1 border border-white/10 hover:bg-white/5 text-gray-300 font-semibold text-xs py-3 rounded-xl transition-colors cursor-pointer"
+                >
+                  ยกเลิก (Cancel)
+                </button>
+                <button 
+                  onClick={handleAddStore}
+                  className="flex-1 bg-[#C9A96E] hover:bg-[#E8D5B0] text-black font-semibold text-xs py-3 rounded-xl transition-colors cursor-pointer"
+                >
+                  สร้างสาขา (Create)
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Hidden input for image uploads */}
       <input 
         type="file" 
@@ -627,7 +1065,13 @@ export default function App() {
 
             {/* Embed the highly polished interactive blueprint showroom component! */}
             <div className="pt-4 border-t border-white/5">
-              <InteractiveFloorplan isEditMode={isEditMode} />
+              <InteractiveFloorplan 
+                isEditMode={isEditMode} 
+                zones={showroomZones}
+                onZonesChange={handleZonesChange}
+                floorPlans={floorPlanImages}
+                onFloorPlansChange={handleFloorPlansChange}
+              />
             </div>
           </div>
 
@@ -787,7 +1231,13 @@ export default function App() {
 
           {/* Embed the beautiful interactive budget spreadsheet, barter, and operating model calculator! */}
           <div className="pt-4">
-            <BudgetCalculator isEditMode={isEditMode} />
+            <BudgetCalculator 
+              isEditMode={isEditMode} 
+              items={budgetItems}
+              onItemsChange={handleBudgetChange}
+              barters={barterItems}
+              onBartersChange={handleBartersChange}
+            />
           </div>
 
         </div>
@@ -982,30 +1432,19 @@ export default function App() {
           showToast ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
         }`}
       >
-        <span>บันทึกข้อมูลแล้ว ✨</span>
+        <span>{toastMessage}</span>
       </div>
 
       {/* Floating Edit Mode Toggle Button */}
-      <button
-        onClick={toggleEditMode}
-        className={`fixed bottom-6 right-6 px-6 py-3 rounded-full font-semibold text-sm shadow-xl z-50 transition-all transform hover:-translate-y-0.5 flex items-center gap-2 cursor-pointer ${
-          isEditMode
-            ? 'bg-[#C9A96E] text-[#111008] hover:bg-[#E8D5B0]'
-            : 'bg-[#2A2A2A] text-[#FAF8F5] border border-[#C9A96E]/30 hover:bg-[#333]'
-        }`}
-      >
-        {isEditMode ? (
-          <>
-            <Check className="w-4 h-4" />
-            <span>บันทึก & ปิดโหมดแก้ไข</span>
-          </>
-        ) : (
-          <>
-            <Edit3 className="w-4 h-4" />
-            <span>เปิดโหมดแก้ไข</span>
-          </>
-        )}
-      </button>
+      {isEditMode && (
+        <button
+          onClick={toggleEditMode}
+          className="fixed bottom-6 right-6 px-6 py-3 rounded-full font-semibold text-sm shadow-xl z-50 transition-all transform hover:-translate-y-0.5 flex items-center gap-2 cursor-pointer bg-[#C9A96E] text-[#111008] hover:bg-[#E8D5B0]"
+        >
+          <Check className="w-4 h-4" />
+          <span>บันทึก & ปิดโหมดแก้ไข</span>
+        </button>
+      )}
 
       {/* ═══ LIGHTBOX FULLSCREEN MODAL ═══ */}
       <AnimatePresence>

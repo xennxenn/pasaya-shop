@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
@@ -10,7 +11,34 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  app.use(express.json());
+  app.use(express.json({ limit: '50mb' }));
+
+  const DB_FILE = path.join(process.cwd(), "db.json");
+
+  // Load store data
+  app.get("/api/data", (req, res) => {
+    try {
+      if (fs.existsSync(DB_FILE)) {
+        const content = fs.readFileSync(DB_FILE, "utf-8");
+        return res.json(JSON.parse(content));
+      }
+      return res.json({ activeStoreId: "seasons-village", stores: {} });
+    } catch (e: any) {
+      console.error("Error reading db.json", e);
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // Save store data
+  app.post("/api/data", (req, res) => {
+    try {
+      fs.writeFileSync(DB_FILE, JSON.stringify(req.body, null, 2), "utf-8");
+      res.json({ success: true });
+    } catch (e: any) {
+      console.error("Error writing db.json", e);
+      res.status(500).json({ error: e.message });
+    }
+  });
 
   // Initialize server-side Gemini API client
   const apiKey = process.env.GEMINI_API_KEY;

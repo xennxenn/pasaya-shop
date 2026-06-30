@@ -52,6 +52,14 @@ interface BarterItem {
   active: boolean;
 }
 
+interface BudgetCalculatorProps {
+  isEditMode: boolean;
+  items: BudgetItem[];
+  onItemsChange: (items: BudgetItem[]) => void;
+  barters: BarterItem[];
+  onBartersChange: (barters: BarterItem[]) => void;
+}
+
 const initialBarters: BarterItem[] = [
   { id: 'barter-1', name: 'โคมไฟแชนเดอเลียร์ & ระบบส่องสว่าง (Lighting)', originalCost: 350000, icon: '💡', active: true },
   { id: 'barter-2', name: 'โซฟารับรองและโต๊ะหินอ่อนโชว์รูม (Furniture)', originalCost: 280000, icon: '🛋️', active: true },
@@ -60,17 +68,13 @@ const initialBarters: BarterItem[] = [
   { id: 'barter-5', name: 'งานตกแต่งศิลปะ ผนัง & ภาพวาดแคนวาส', originalCost: 120000, icon: '🎨', active: false }
 ];
 
-export const BudgetCalculator: React.FC<BudgetCalculatorProps> = ({ isEditMode }) => {
-  const [items, setItems] = useState<BudgetItem[]>(() => {
-    const saved = localStorage.getItem('pasaya_budget_items');
-    return saved ? JSON.parse(saved) : initialBudgetItems;
-  });
-
-  const [barters, setBarters] = useState<BarterItem[]>(() => {
-    const saved = localStorage.getItem('pasaya_barter_items');
-    return saved ? JSON.parse(saved) : initialBarters;
-  });
-
+export const BudgetCalculator: React.FC<BudgetCalculatorProps> = ({ 
+  isEditMode,
+  items,
+  onItemsChange,
+  barters,
+  onBartersChange
+}) => {
   // Interactive slider states
   const [expectedMonthlyRevenue, setExpectedMonthlyRevenue] = useState<number>(2000000); // Default 2 Million THB/month
   const [grossMarginPercent, setGrossMarginPercent] = useState<number>(50); // Default 50%
@@ -82,13 +86,11 @@ export const BudgetCalculator: React.FC<BudgetCalculatorProps> = ({ isEditMode }
   const [newNote, setNewNote] = useState('');
 
   const saveItems = (updated: BudgetItem[]) => {
-    setItems(updated);
-    localStorage.setItem('pasaya_budget_items', JSON.stringify(updated));
+    onItemsChange(updated);
   };
 
   const saveBarters = (updated: BarterItem[]) => {
-    setBarters(updated);
-    localStorage.setItem('pasaya_barter_items', JSON.stringify(updated));
+    onBartersChange(updated);
   };
 
   const handleUpdateItem = (id: string, field: keyof BudgetItem, value: any) => {
