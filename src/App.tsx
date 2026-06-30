@@ -31,7 +31,6 @@ import {
   X
 } from 'lucide-react';
 
-import { InteractiveFloorplan } from './components/InteractiveFloorplan';
 import { BudgetCalculator } from './components/BudgetCalculator';
 
 // Default editable text content matching the shared HTML
@@ -551,6 +550,13 @@ export default function App() {
     showToastMessage("อัปโหลดภาพผังร้านแล้ว ✨");
   };
 
+  const handleFloorPlanUploadDirect = (floor: 1 | 2, file: File) => {
+    compressImage(file, (base64) => {
+      const updatedPlans = { ...floorPlanImages, [floor]: base64 };
+      handleFloorPlansChange(updatedPlans);
+    });
+  };
+
   const handleBudgetChange = (newItems: any[]) => {
     const updatedStore = {
       ...activeStore,
@@ -957,12 +963,13 @@ export default function App() {
             <motion.img 
               src={images.entrance} 
               alt="Seasons Village Entrance" 
-              className="w-full h-full object-cover opacity-100 origin-center"
+              className="w-full h-full object-cover opacity-100 origin-center cursor-zoom-in hover:brightness-110 transition-all duration-300"
               initial={{ scale: 1.05 }}
               whileInView={{ scale: 1.0 }}
               viewport={{ once: false, amount: 0.1 }}
               transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
               referrerPolicy="no-referrer"
+              onClick={() => setLightboxImage({ src: images.entrance, title: 'Entrance / ทางเข้าสาขา' })}
             />
             {/* Dark gradient overlay to guarantee exquisite text legibility */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
@@ -1021,12 +1028,13 @@ export default function App() {
                 <motion.img 
                   src={images.facade} 
                   alt="Facade Render" 
-                  className="w-full h-full object-cover origin-center"
+                  className="w-full h-full object-cover origin-center cursor-zoom-in hover:brightness-110 transition-all duration-300"
                   initial={{ scale: 1.05 }}
                   whileInView={{ scale: 1.0 }}
                   viewport={{ once: false, amount: 0.15 }}
                   transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
                   referrerPolicy="no-referrer"
+                  onClick={() => setLightboxImage({ src: images.facade, title: '01 Exterior Facade / หน้าร้านพลาซ่า' })}
                 />
                 {isEditMode && (
                   <div className="absolute top-4 right-4 z-10">
@@ -1055,12 +1063,13 @@ export default function App() {
                 <motion.img 
                   src={images.sideview} 
                   alt="Side View Render" 
-                  className="w-full h-full object-cover origin-center"
+                  className="w-full h-full object-cover origin-center cursor-zoom-in hover:brightness-110 transition-all duration-300"
                   initial={{ scale: 1.05 }}
                   whileInView={{ scale: 1.0 }}
                   viewport={{ once: false, amount: 0.15 }}
                   transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
                   referrerPolicy="no-referrer"
+                  onClick={() => setLightboxImage({ src: images.sideview, title: '02 Side View / ด้านข้างโครงการ' })}
                 />
                 {isEditMode && (
                   <div className="absolute top-4 right-4 z-10">
@@ -1089,12 +1098,13 @@ export default function App() {
                 <motion.img 
                   src={images.backview} 
                   alt="Back View Render" 
-                  className="w-full h-full object-cover origin-center"
+                  className="w-full h-full object-cover origin-center cursor-zoom-in hover:brightness-110 transition-all duration-300"
                   initial={{ scale: 1.05 }}
                   whileInView={{ scale: 1.0 }}
                   viewport={{ once: false, amount: 0.15 }}
                   transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
                   referrerPolicy="no-referrer"
+                  onClick={() => setLightboxImage({ src: images.backview, title: '03 Back View / ด้านหลังอาคาร' })}
                 />
                 {isEditMode && (
                   <div className="absolute top-4 right-4 z-10">
@@ -1126,12 +1136,13 @@ export default function App() {
                 <motion.img 
                   src={images.floor1_interior} 
                   alt="1st Floor Interior Render" 
-                  className="w-full h-full object-cover origin-center"
+                  className="w-full h-full object-cover origin-center cursor-zoom-in hover:brightness-110 transition-all duration-300"
                   initial={{ scale: 1.05 }}
                   whileInView={{ scale: 1.0 }}
                   viewport={{ once: false, amount: 0.15 }}
                   transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
                   referrerPolicy="no-referrer"
+                  onClick={() => setLightboxImage({ src: images.floor1_interior, title: '04 1st Floor Showroom / สเปซภายในชั้น 1' })}
                 />
                 {isEditMode && (
                   <div className="absolute top-4 right-4 z-10">
@@ -1160,12 +1171,13 @@ export default function App() {
                 <motion.img 
                   src={images.floor2_interior} 
                   alt="2nd Floor Interior Render" 
-                  className="w-full h-full object-cover origin-center"
+                  className="w-full h-full object-cover origin-center cursor-zoom-in hover:brightness-110 transition-all duration-300"
                   initial={{ scale: 1.05 }}
                   whileInView={{ scale: 1.0 }}
                   viewport={{ once: false, amount: 0.15 }}
                   transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
                   referrerPolicy="no-referrer"
+                  onClick={() => setLightboxImage({ src: images.floor2_interior, title: '06 2nd Floor Interior / โชว์รูมและสตูดิโอชั้น 2' })}
                 />
                 {isEditMode && (
                   <div className="absolute top-4 right-4 z-10">
@@ -1189,7 +1201,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* Render Item 05: INTERACTIVE BLUEPRINT SHOWROOM (Full width, positioned below the grid cards) */}
+          {/* Render Item 05: FLOOR PLANS DISPLAY (Full width, positioned below the grid cards) */}
           <div className="border border-[#C9A96E]/15 rounded-2xl overflow-hidden bg-[#121109] p-8 md:p-12 space-y-8 relative">
             <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#C9A96E]/40 to-transparent" />
             
@@ -1199,15 +1211,86 @@ export default function App() {
               <EditableText id="render-05-desc" as="p" className="text-xs md:text-sm text-[#8C7B6B] leading-relaxed block" />
             </div>
 
-            {/* Embed the highly polished interactive blueprint showroom component! */}
-            <div className="pt-4 border-t border-white/5">
-              <InteractiveFloorplan 
-                isEditMode={isEditMode} 
-                zones={showroomZones}
-                onZonesChange={handleZonesChange}
-                floorPlans={floorPlanImages}
-                onFloorPlansChange={handleFloorPlansChange}
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-white/5">
+              {/* Floor 1 Floor Plan */}
+              <div className="border border-[#C9A96E]/10 bg-[#151309]/50 overflow-hidden rounded-xl flex flex-col h-full">
+                <div className="relative aspect-[16/10] w-full overflow-hidden group bg-[#0c0a06]">
+                  <motion.img 
+                    src={floorPlanImages[1] || 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&q=80&w=1200'} 
+                    alt="Floor 1 Floor Plan" 
+                    className="w-full h-full object-cover origin-center cursor-zoom-in hover:brightness-110 transition-all duration-300"
+                    initial={{ scale: 1.02 }}
+                    whileInView={{ scale: 1.0 }}
+                    viewport={{ once: true }}
+                    referrerPolicy="no-referrer"
+                    onClick={() => setLightboxImage({ 
+                      src: floorPlanImages[1] || 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&q=80&w=1200', 
+                      title: '05 Floor 1 Blueprint / แปลนอาคารชั้น 1' 
+                    })}
+                  />
+                  {isEditMode && (
+                    <div className="absolute top-4 right-4 z-10">
+                      <label className="flex items-center gap-1.5 bg-black/80 hover:bg-black/95 text-[#E8D5B0] border border-[#C9A96E]/40 font-semibold text-xs px-3.5 py-1.5 rounded-full shadow-lg transition-colors cursor-pointer">
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>อัปโหลดแปลน ชั้น 1</span>
+                        <input 
+                          type="file" 
+                          accept="image/*"
+                          className="hidden" 
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleFloorPlanUploadDirect(1, file);
+                          }}
+                        />
+                      </label>
+                    </div>
+                  )}
+                </div>
+                <div className="p-5 border-t border-[#C9A96E]/10 bg-black/20">
+                  <h4 className="font-serif text-lg text-white">แปลนจัดวางเฟอร์นิเจอร์ ชั้น 1 (1st Floor Plan)</h4>
+                  <p className="text-xs text-[#8C7B6B] mt-1">แสดงการจัดวางสินค้าผ้าม่าน โซนต้อนรับ และห้องที่ปรึกษาดีไซเนอร์</p>
+                </div>
+              </div>
+
+              {/* Floor 2 Floor Plan */}
+              <div className="border border-[#C9A96E]/10 bg-[#151309]/50 overflow-hidden rounded-xl flex flex-col h-full">
+                <div className="relative aspect-[16/10] w-full overflow-hidden group bg-[#0c0a06]">
+                  <motion.img 
+                    src={floorPlanImages[2] || 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=1200'} 
+                    alt="Floor 2 Floor Plan" 
+                    className="w-full h-full object-cover origin-center cursor-zoom-in hover:brightness-110 transition-all duration-300"
+                    initial={{ scale: 1.02 }}
+                    whileInView={{ scale: 1.0 }}
+                    viewport={{ once: true }}
+                    referrerPolicy="no-referrer"
+                    onClick={() => setLightboxImage({ 
+                      src: floorPlanImages[2] || 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=1200', 
+                      title: '05 Floor 2 Blueprint / แปลนอาคารชั้น 2' 
+                    })}
+                  />
+                  {isEditMode && (
+                    <div className="absolute top-4 right-4 z-10">
+                      <label className="flex items-center gap-1.5 bg-black/80 hover:bg-black/95 text-[#E8D5B0] border border-[#C9A96E]/40 font-semibold text-xs px-3.5 py-1.5 rounded-full shadow-lg transition-colors cursor-pointer">
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>อัปโหลดแปลน ชั้น 2</span>
+                        <input 
+                          type="file" 
+                          accept="image/*"
+                          className="hidden" 
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleFloorPlanUploadDirect(2, file);
+                          }}
+                        />
+                      </label>
+                    </div>
+                  )}
+                </div>
+                <div className="p-5 border-t border-[#C9A96E]/10 bg-black/20">
+                  <h4 className="font-serif text-lg text-white">แปลนจัดวางเฟอร์นิเจอร์ ชั้น 2 (2nd Floor Plan)</h4>
+                  <p className="text-xs text-[#8C7B6B] mt-1">ผังการจัดแสดงสินค้าชุดเครื่องนอน โซน Co-working และห้องทำงานผู้บริหาร</p>
+                </div>
+              </div>
             </div>
           </div>
 

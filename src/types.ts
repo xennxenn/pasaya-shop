@@ -14,6 +14,10 @@ export interface ShowroomZone {
   products: string[];
   keyFeature: string;
   icon: string;
+  colStart?: number;
+  colSpan?: number;
+  rowStart?: number;
+  rowSpan?: number;
 }
 
 export interface ProjectMilestone {
