@@ -1,0 +1,40 @@
+{
+  "entities": {
+    "Store": {
+      "title": "Store Branch Configurations",
+      "description": "PASAYA Showroom and Flagship store branch content and customization data.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "texts": { "type": "object" },
+        "lists": { "type": "object" },
+        "images": { "type": "object" },
+        "showroomZones": { "type": "array" },
+        "floorPlanImages": { "type": "object" },
+        "budgetItems": { "type": "array" },
+        "barterItems": { "type": "array" }
+      },
+      "required": ["id", "name"]
+    },
+    "AppState": {
+      "title": "Global App State",
+      "description": "Stores current active store branch ID.",
+      "type": "object",
+      "properties": {
+        "activeStoreId": { "type": "string" }
+      },
+      "required": ["activeStoreId"]
+    }
+  },
+  "firestore": {
+    "/stores/{storeId}": {
+      "schema": "Store",
+      "description": "Individual branch showroom configuration data including designs, zones, budgets."
+    },
+    "/appState/settings": {
+      "schema": "AppState",
+      "description": "Global settings such as currently selected active branch."
+    }
+  }
+}

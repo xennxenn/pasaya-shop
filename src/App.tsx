@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 
 import { BudgetCalculator } from './components/BudgetCalculator';
+import { getStoreDataFromFirestore, saveStoreDataToFirestore } from './firebase';
 
 // Default editable text content matching the shared HTML
 const defaultTexts = {
@@ -333,42 +334,61 @@ export default function App() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newStoreName, setNewStoreName] = useState("");
 
-  // Load from server on mount
+  // Load from Firestore first, fallback to server on mount
   useEffect(() => {
     const loadData = async () => {
       try {
-        const res = await fetch('/api/data');
-        const data = await res.json();
+        console.log("Attempting to load data from Firestore...");
+        const firestoreData = await getStoreDataFromFirestore();
         
-        let currentStores = data.stores || {};
-        let currentActiveId = data.activeStoreId || "seasons-village";
+        let currentStores = null;
+        let currentActiveId = "seasons-village";
+        
+        if (firestoreData && firestoreData.stores) {
+          console.log("Successfully loaded data from Firestore!");
+          currentStores = firestoreData.stores;
+          currentActiveId = firestoreData.activeStoreId || "seasons-village";
+        } else {
+          console.log("No Firestore data found or connection failed. Trying local backend API...");
+          const res = await fetch('/api/data');
+          const data = await res.json();
+          currentStores = data.stores || {};
+          currentActiveId = data.activeStoreId || "seasons-village";
+        }
         
         // If empty, initialize the default "seasons-village" store
-        if (!currentStores["seasons-village"]) {
-          currentStores["seasons-village"] = {
-            id: "seasons-village",
-            name: "Seasons Village ราชพฤกษ์",
-            texts: defaultTexts,
-            lists: defaultLists,
-            images: defaultImages,
-            showroomZones: initialZones,
-            floorPlanImages: { 1: '', 2: '' },
-            budgetItems: initialBudgetItems,
-            barterItems: initialBarters
+        if (!currentStores || !currentStores["seasons-village"]) {
+          currentStores = {
+            "seasons-village": {
+              id: "seasons-village",
+              name: "Seasons Village ราชพฤกษ์",
+              texts: defaultTexts,
+              lists: defaultLists,
+              images: defaultImages,
+              showroomZones: initialZones,
+              floorPlanImages: { 1: '', 2: '' },
+              budgetItems: initialBudgetItems,
+              barterItems: initialBarters
+            }
           };
           
+          // Save to both to initialize
+          await saveStoreDataToFirestore({ activeStoreId: currentActiveId, stores: currentStores });
           await fetch('/api/data', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ activeStoreId: currentActiveId, stores: currentStores }),
           });
+        } else if (!firestoreData) {
+          // If we had data in the local server but not in Firestore, save it to Firestore now to synchronize
+          await saveStoreDataToFirestore({ activeStoreId: currentActiveId, stores: currentStores });
         }
         
         setStores(currentStores);
         setActiveStoreId(currentActiveId);
       } catch (error) {
-        console.error("Failed to fetch store data from server:", error);
-        // Fallback local
+        console.error("Failed to fetch store data:", error);
+        // Fallback local state if both fail
         setStores({
           "seasons-village": {
             id: "seasons-village",
@@ -389,16 +409,20 @@ export default function App() {
     loadData();
   }, []);
 
-  // Save changes to the backend
+  // Save changes to both Firebase Firestore and the local backend
   const saveToServer = async (activeId: string, allStores: Record<string, any>) => {
     try {
+      // 1. Save to cloud Firestore so it persists across refreshes and different machines/reloads
+      await saveStoreDataToFirestore({ activeStoreId: activeId, stores: allStores });
+      
+      // 2. Save to local server /api/data so it updates db.json
       await fetch('/api/data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ activeStoreId: activeId, stores: allStores }),
       });
     } catch (error) {
-      console.error("Failed to save data to server:", error);
+      console.error("Failed to save data:", error);
     }
   };
 
@@ -1640,23 +1664,11 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/95 z-[100] flex flex-col items-center justify-center p-4 md:p-8"
+            className="fixed inset-0 bg-black/95 z-[100] flex flex-col items-center justify-center p-4 md:p-8 cursor-zoom-out"
             onClick={() => setLightboxImage(null)}
           >
-            {/* Close Button */}
-            <button
-              onClick={() => setLightboxImage(null)}
-              className="absolute top-6 right-6 p-3 rounded-full bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-colors cursor-pointer"
-              title="Close"
-            >
-              <span className="sr-only">Close</span>
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
             {/* Top Info Bar */}
-            <div className="absolute top-6 left-6 text-left">
+            <div className="absolute top-6 left-6 text-left pointer-events-none">
               <span className="text-[10px] tracking-widest text-[#C9A96E] font-mono font-bold uppercase block mb-1">
                 HIGH-RESOLUTION RENDER VIEWER
               </span>
@@ -1669,19 +1681,34 @@ export default function App() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 15 }}
               transition={{ type: "spring", damping: 25, stiffness: 180 }}
-              className="relative max-w-7xl max-h-[80vh] w-full h-full flex items-center justify-center select-none"
+              className="relative max-w-5xl max-h-[75vh] flex items-center justify-center select-none z-10 cursor-default"
               onClick={(e) => e.stopPropagation()}
             >
               <img
                 src={lightboxImage.src}
                 alt={lightboxImage.title}
-                className="max-w-full max-h-full object-contain rounded-lg border border-[#C9A96E]/20 shadow-[0_0_50px_rgba(201,169,110,0.15)]"
+                className="max-w-full max-h-[75vh] object-contain rounded-lg border border-[#C9A96E]/20 shadow-[0_0_50px_rgba(201,169,110,0.15)]"
                 referrerPolicy="no-referrer"
               />
             </motion.div>
 
+            {/* Close Button - positioned on top */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightboxImage(null);
+              }}
+              className="absolute top-6 right-6 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-colors cursor-pointer z-50"
+              title="Close"
+            >
+              <span className="sr-only">Close</span>
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
             {/* Bottom Help Text */}
-            <div className="absolute bottom-6 text-center text-xs text-gray-500 font-mono">
+            <div className="absolute bottom-6 text-center text-xs text-gray-500 font-mono pointer-events-none">
               คลิกบริเวณรอบนอกเพื่อปิดหน้าต่างนี้ • PASAYA Flagship Gallery
             </div>
           </motion.div>
