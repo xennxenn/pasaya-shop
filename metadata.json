@@ -1,0 +1,6 @@
+{
+  "name": "PASAYA Flagship Presenter",
+  "description": "Interactive Pitch Deck & Strategic Dashboard for the PASAYA Curtain Center Flagship Store at Seasons Village Ratchaphruek.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
